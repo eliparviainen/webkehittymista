@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<!-- 
+THREE.JS-SORMIHARJOITUKSIA
+näkymän pistäminen näkymään, kolmioitten piirto, kamera
+toiminut: chrome, firefox
+
+(c) Eli Parviainen, 2019
+-->
+
+
+
+    <html lang="en">
+    <head>
+    <title>gaussmöykkymaisema + kamera</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    </head>
+    <body>
+
+
+
+    <!-- onchange() toimii (joissain selaimissa ainakin) vasta kun focus poistuu, siksi oninput() -->
+    camera settings:
+    <table>
+    <tr><td>
+    position<br>
+    x <input type="range" id="camX" min=-2000 max=2000 value=-600 oninput="updateCamera();">
+    y <input type="range" id="camY" min=-2000 max=2000 value=1400 oninput="updateCamera();">
+    z <input type="range" id="camZ" min=-3000 max=3000 value=700 oninput="updateCamera();"><br>
+    </td>
+    <td>
+    lookat<br>
+    x <input type="range" id="lookX" min=0 max=2000 value=150 oninput="updateCamera();">
+    y <input type="range" id="lookY" min=0 max=2000 value=900 oninput="updateCamera();">
+    z <input type="range" id="lookZ" min=-1000 max=1000 value=300 oninput="updateCamera();"><br>
+    </td>
+    <td>
+    fov<br>
+    <input type="range" id="fov" min=10 max=160 value=45 oninput="updateCamera();">
+    </td></tr>
+    </table>
+
+
+<!-- lokaalisti ajettuna
+    <script src="./three.js-master/build/three.js"></script>
+-->
+
+
+<!-- jos ei ole lokaalia kopiota three.js:stä -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.108.0/build/three.js"></script>
+    
+
+
+
+
+
+    <script> 
+    function updateCamera() { 
+	console.log("update camera")
+        var cx = document.getElementById("camX").value;
+        var cy = document.getElementById("camY").value;
+        var cz = document.getElementById("camZ").value;
+        var lx = document.getElementById("lookX").value;
+        var ly = document.getElementById("lookY").value;
+        var lz = document.getElementById("lookZ").value;
+        var fov = document.getElementById("fov").value;
+	camera.position.set(cx,cy,cz);
+	camera.fov = fov;
+	camera.lookAt(new THREE.Vector3( lx, ly, lz ));
+	// tämä muista lisätä aina kun räpläät kameraa
+	camera.updateProjectionMatrix();
+	renderer.render( scene, camera );
+    } 
+</script> 
+
+
+
+<script>
+
+// montako ruutua suuntaansa
+var XSIZE = 40;
+var YSIZE = 40;
+// yhen ruudun koko
+var SCALE = 15;
+
+
+var camera, scene, renderer;
+init();
+renderer.render( scene, camera );
+
+
+function init() {
+    // eka param on fov (field of view)
+    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+
+
+    // oletus on y ylös
+    camera.up=new THREE.Vector3( 0,0,1 );
+
+    // position pitää asettaa ensin, lookat sitten -- jos laittaa
+    // toisinpäin, ei kuva tule näkyviin ruudulle?
+    camera.position.set(-600,1400,700);
+    camera.lookAt(new THREE.Vector3( 150, 900, 300));
+    camera.updateProjectionMatrix();
+
+    // vaaleanharmaa tausta
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xdddddd );
+
+    // joku valo pitää olla, muuten kaikki näkyy mustana
+    var ambientLight = new THREE.AmbientLight( 0xffffff, 0.4 );
+    scene.add( ambientLight );
+    scene.add( camera );
+
+    /*
+      gaussmöykkyjä gridissä
+    */
+    var gridpts = [];    
+    var maxD = Math.max(XSIZE, YSIZE)*SCALE;
+    // x,y,h,sigma
+    var bump = [[0.3,0.3, 0.7, 0.1],[0.7,0.7,1,0.1]];
+    for ( var yind = 0; yind < YSIZE; yind ++ ) {
+	gridpts[yind] = [];
+	for ( var xind = 0; xind < XSIZE; xind ++ ) {
+	    // var x = (xind+0.5)*SCALE; var y = (yind+0.5)*SCALE;
+	    var x = xind*SCALE; var y = yind*SCALE;
+	    gridpts[yind][xind] = [];
+	    gridpts[yind][xind][0] = x;
+	    gridpts[yind][xind][1] = y;
+	    gridpts[yind][xind][2] = 0;
+	    for ( var zind = 0; zind < bump.length; zind ++ ) {
+		var meanx = bump[zind][0]*XSIZE*SCALE;
+		var meany = bump[zind][1]*YSIZE*SCALE;
+		var hei = bump[zind][2]*SCALE*(XSIZE+YSIZE)/2;
+		var sigma1 = bump[zind][3]*XSIZE*SCALE;
+		var sigma2 = bump[zind][3]*YSIZE*SCALE;
+		var V12 = 0; // x1-x2-kovarianssi
+		var rho = V12/(sigma1*sigma2); 
+		var z = ( Math.pow(x-meanx,2)/Math.pow(sigma1,2) ) - ( 2*rho*(x-meanx)*(y-meany)/(sigma1*sigma2) ) +  (Math.pow(y-meany,2)/Math.pow(sigma2,2) );
+		gridpts[yind][xind][2] = gridpts[yind][xind][2] + hei*Math.exp(-z/(2*(1-Math.pow(rho,2))));
+	    }
+	}}
+
+    /*
+      jokaisen gridiruudun kohalle kaksi kolmiota jollon syntyy pinta
+    */
+    for ( var yind = 0; yind < YSIZE-1; yind ++ ) {
+	for ( var xind = 0; xind < XSIZE-1; xind ++ ) {
+	    // DoubleSide: myös kolmioitten pohjat näkymään
+	    var material = new THREE.MeshLambertMaterial ({ color: 0x000000, side: THREE.DoubleSide });
+	    var geometry = new THREE.Geometry();
+	    var maxhei = SCALE*(XSIZE+YSIZE)/2;
+	    var gb = gridpts[yind][xind][2]/maxhei;
+	    material.color.setRGB(0.1,Math.min(1,0.7+gb),Math.min(1,0.7+gb));
+
+	    // gridi laskee (muuten turhaan mutta z riippuu niistä) globaalit koordinaattipaikat,
+	    // tämä tarttee kunkin olion lokaalit koordinaatit; (vyx,vyy) on globaali paikka
+	    // jolla koko olio laitetaan paikalleen
+	    var vyx = gridpts[yind][xind][0];
+	    var vyy = gridpts[yind][xind][1];
+	    var vy = new THREE.Vector3( 0, 0, gridpts[yind][xind][2] );
+	    var oy = new THREE.Vector3( gridpts[yind][xind+1][0]-vyx, gridpts[yind][xind+1][1]-vyy, gridpts[yind][xind+1][2] );
+	    var oa = new THREE.Vector3( gridpts[yind+1][xind+1][0]-vyx, gridpts[yind+1][xind+1][1]-vyy, gridpts[yind+1][xind+1][2] );
+	    var va = new THREE.Vector3( gridpts[yind+1][xind][0]-vyx, gridpts[yind+1][xind][1]-vyy, gridpts[yind+1][xind][2] );
+	    geometry.vertices.push(vy);
+	    geometry.vertices.push(oy);
+	    geometry.vertices.push(oa);
+	    geometry.vertices.push(va);
+
+	    // huom järjestys; jos laittaa eripäin, tuleekin kolmion
+	    // pohja pinnalle (tällä muuta väliä ole mutta vaatii 
+	    // kaksipuolisen materiaalin jotta nurinpäinen kolmio näkyy)
+	    geometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
+	    geometry.faces.push( new THREE.Face3( 0, 2, 3 ) );
+
+	    // paikka kaikkiaan + ruudun kulma + ruudun keskipiste
+	    var KPX = (XSIZE*SCALE/2) + vyx + (vy.x+oy.x+oa.x+va.x)/4;
+	    var KPY = (YSIZE*SCALE/2) + vyy + (vy.y+oy.y+oa.y+va.y)/4;
+
+	    object = new THREE.Mesh( geometry, material );
+	    object.position.set(KPX, KPY, 0 );
+	    scene.add( object );
+	}}
+
+    // standardipaloja jostain kopioituna
+    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    window.addEventListener( 'resize', onWindowResize, false );
+}
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+
+</script>
+
+</body>
+</html>
