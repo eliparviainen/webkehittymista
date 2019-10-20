@@ -1,0 +1,143 @@
+    <!--
+(c) Eli Parviainen
+fullstackdev-rekrykurssi syksy 2019
+
+responsiivisuuskokeilu
+oppimistavoite: yleiskuva siitä miten responsiivisia näyttöjä tehdään
+-->
+    
+
+<doctype html>
+<head>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+ <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<style>
+/* vw on viewport width */
+h1 { font-size: 3vw; color: teal; }
+h2 { font-size: 2vw; color: teal; }
+
+.plain1, .plain2, .plain3 { color: red; }
+.mq1, .mq2, .mq3 { color: blue; }
+.plain1, .mq1 { float: left; width: 33.3%; }
+.plain2, .mq2 { float: left; width: 33.3%; }
+.plain3, .mq3 { float: left; width: 33.3%; }
+
+/* esimerkki media querystä */
+@media screen and (max-width: 500px) {
+  .mq1, .mq2, .mq3 {
+    width: 100%; // alle 500-levysellä vaihtuu
+  }
+}
+</style>
+</head>
+<body>
+
+<h1> epäresponsiivinen </h1>
+
+<div class="plain1">
+<p>
+xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx
+</p>
+</div>
+<div class="plain2">
+<p>
+yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy
+</p>
+</div>
+<div class="plain3">
+<p>
+zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz
+</p>
+</div>
+
+<!-- ================================================== -->
+
+<h1> media query </h1>
+
+<div class="mq1">
+<p>
+xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx
+</p>
+</div>
+<div class="mq2">
+<p>
+yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy
+</p>
+</div>
+<div class="mq3">
+<p>
+zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz
+</p>
+</div>
+
+<h1> w3css-stylesheetin gridi </h1>
+
+
+<div class="w3-third">
+<p>
+xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx
+</p>
+</div>
+<div class="w3-third">
+<p>
+yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy
+</p>
+</div>
+<div class="w3-third">
+<p>
+zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz
+</p>
+</div>
+
+
+<h1> bootstrap </h1>
+
+<h2> pelkkä responsive </h2>
+
+<div class="row">
+<div class="col-sm-4">
+<p>
+xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx
+</p>
+</div>
+<div class="col-sm-4">
+<p>
+yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy
+</p>
+</div>
+<div class="col-sm-4">
+<p>
+zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz
+</p>
+</div> 
+</div> <!-- row -->
+
+
+
+<h2> sama jumbotronin sisällä </h2>
+
+<div class="jumbotron">
+<div class="row">
+<div class="col-sm-4">
+<p>
+xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx xxx
+</p>
+</div>
+<div class="col-sm-4">
+<p>
+yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy yyy
+</p>
+</div>
+<div class="col-sm-4">
+<p>
+zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz
+</p>
+</div> 
+</div> <!-- row -->
+<!-- </div> --> <!-- jumbotron -->
+
+
+</body>

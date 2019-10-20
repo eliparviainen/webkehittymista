@@ -1,0 +1,337 @@
+<!--
+(c) Eli Parviainen
+fullstackdev-rekrykurssi syksy 2019
+
+ristinolla-peli
+oppimistavoite: miten toimii javascriptin luokat
+-->
+    
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <style>
+    body {
+	font-family: arial;
+	padding: 20px;
+    }
+
+h1 { font-size: 2em; }
+
+    .freeBox, .usedBoxA, .usedBoxB {
+	float: left;
+	border-style: solid;
+	border-color: teal;
+	border-width: 2px;
+	border-radius: 3px;
+	margin: auto;
+	text-align: center;
+	box-sizing: border-box; // sisältää marginin
+	height: 50px;
+	width: 50px;
+	padding-top: 0.5em;
+	font-size: 1.2em;
+    }
+
+    .freeBox {
+    }
+
+    .usedBoxA {
+	color: blue;
+	font-weight: bold;
+    }
+
+    .usedBoxB {
+	color: darkred;
+	font-weight: bold;
+    }
+
+#numberContainer {
+    margin-top: 1.5em;
+}
+
+#infoBox {
+    margin-top: 20px;
+    display: block;
+    	border-style: none;
+	border-color: red;
+    border-width: 2px;
+    height: 50px;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+
+</style>
+
+    <script>
+
+// nimeämiskäytäntö pelin ruuduille
+class BoxName {
+    static boxNameStr(row, col) {
+    	return "box-"+row+"-"+col;
+    }
+}
+
+
+class Game {
+
+    constructor() {
+	
+	this.gridSize=3;
+	this.grid=[];
+	
+	this.numberContainer = document.getElementById("numberContainer");
+	this.infoBox=document.getElementById("infoBox");
+	this.gridSizeInput=document.getElementById("gridSize");
+	this.whoStartsInputs=document.getElementsByName("whoStarts");
+
+	// että voi tyhjätä pelialueen ilman että piirtoalue katoaa bodysta
+	let elem = document.createElement("div"); elem.id = "innerContainer";
+	this.numberContainer.appendChild(elem);
+	this.innerContainer = document.getElementById("innerContainer");
+
+    }
+
+
+    markGrid(row, col, who) {
+        let box=document.getElementById(BoxName.boxNameStr(row,col));
+	if (who==="A") {
+	    box.innerHTML = "X";
+	    box.className = "usedBoxA";
+	} else {
+	    box.innerHTML = "O";
+	    box.className = "usedBoxB";
+	}	
+	box.onclick=undefined;
+	console.log(this)
+	
+	this.grid[row][col] = who;
+    }
+
+
+    isGridFull() {
+	let numMarked=0;
+	for (let rind=0; rind<this.gridSize; rind++)
+	{
+	    let row = [];	    
+	    for (let cind=0; cind<this.gridSize; cind++)
+	    {
+		if ( this.grid[rind][cind]!==0 ) { numMarked++; }
+	    } 
+	}
+	return (numMarked === Math.pow(this.gridSize,2));
+    }
+
+
+    freeBoxes() {
+	let freeBoxes=[];
+	for (let rind=0; rind<this.gridSize; rind++)
+	{
+	    for (let cind=0; cind<this.gridSize; cind++)
+	    {
+		if ( this.grid[rind][cind]===0 ) {
+		    freeBoxes.push([rind, cind]);
+		}
+	    } 
+	}
+	return freeBoxes;
+    }
+
+
+    
+    isWinner(who) {
+	let dsum1=0, dsum2=0;
+	for (let ind1=0; ind1<this.gridSize; ind1++)
+	{
+	    // rivisumma, sarasumma, lävistäjäsummat
+	    let sum1=0, sum2=0;
+	    if ( this.grid[ind1][ind1]===who ) { dsum1++; }
+	    if ( this.grid[ind1][(this.gridSize-1)-ind1]===who ) { dsum2++; }
+	    for (let ind2=0; ind2<this.gridSize; ind2++)
+	    {
+		if ( this.grid[ind1][ind2]===who )
+		{		 
+		    sum1++;
+		}		
+		if ( this.grid[ind2][ind1]===who )
+		{
+		    sum2++;		    
+		} 
+		
+	    } // for ind2
+
+	    if ( sum1===this.gridSize || sum2 === this.gridSize ||
+		 dsum1 === this.gridSize || dsum2 === this.gridSize )
+	    { return true; }
+	} // for ind1
+	return false;
+    }
+
+
+    gameOver(winner) {
+	switch ( winner ) {
+	case "tasa":
+	    this.infoBox.innerHTML = "molemmat hävisivät";
+	    break;
+	case "A":
+	    this.infoBox.innerHTML = "ihmispelaaja pelasi epäreilusti";
+	    break;
+	case "B":
+	    this.infoBox.innerHTML = "peliohjelma voitti";
+	    break;
+	default:
+	    alert("bugi; tänne eí pidä päätyä");
+	}
+	console.log("gamer over");
+    }
+
+    ticHandler(row, col) {
+	this.markGrid(row, col, "A");
+	if ( this.isWinner("A") ) { this.gameOver("A"); }
+	else if ( this.isGridFull() ) { this.gameOver("tasa"); }
+	else { this.tacHandler(); }
+    }
+
+    tacHandler() {
+	let freeB = this.freeBoxes();
+	// jakaa N väliin, ykkönen tuottaa N+1:n (harvinainen erikoistapaus, korjataan N:ksi)
+	let ind = Math.floor(Math.random()*(freeB.length+1));
+	if (ind===freeB.length+1) { ind--; }
+	this.markGrid(freeB[ind][0], freeB[ind][1], "B");
+	if ( this.isWinner("B") ) { this.gameOver("B"); }
+	else if ( this.isGridFull() ) { this.gameOver("tasa"); }	    
+    }
+
+    
+    newGameHandler() {
+	
+	this.innerContainer.remove();
+	this.innerContainer = document.createElement("div");
+	this.numberContainer.appendChild(this.innerContainer);
+	this.infoBox.innerHTML = "";
+	this.gridSize = parseInt(this.gridSizeInput.value);
+	if (isNaN(this.gridSize) || (this.gridSizeInput.value<this.gridSizeInput.min) || (this.gridSizeInput.value>this.gridSizeInput.max)) {
+	    this.gridSize=3;
+	}
+
+	let rowContainer = document.createElement("div");
+	rowContainer.classname = "rowContainer";
+	
+	this.grid = [];	
+	for (let rind=0; rind<this.gridSize; rind++) {
+
+	    // tehtävä nollat erikseen joka riville koska
+	    // arrayt on reference-tyyppiä, ei kopioi
+	    let row = [];	    
+	    for (let cind=0; cind<this.gridSize; cind++) {
+		row.push(0);
+
+
+		let elem = document.createElement("div");
+		elem.className = "freeBox";
+		elem.id = BoxName.boxNameStr(rind, cind);
+
+		// kauneusvirhe olla täällä mutten saanut muutakaan toimimaan
+		elem.style.height = "50px";
+		elem.style.width = "50px";
+
+		/*
+		// ei toimi, ei näe this:iä enää ticHandlerissa
+		let func = this.ticHandler;
+		elem.onclick = function (event) {
+		// "this" viittaa eventhandlereissä johonkin muualle
+		func(rind, cind);
+		}
+		*/
+
+		// nuolifunktio sitoo this:in eri tavalla
+		elem.onclick =  (event) => { this.ticHandler(rind, cind); }
+		
+		// toinen tapa luoda innerHTML:
+		//var text = document.createTextNode(i); elem.appendChild(text);
+
+		rowContainer.appendChild(elem);
+		rowContainer.style.height = elem.offsetHeight+"px";
+
+	    } // for col
+
+	    this.grid.push(row);
+	    this.innerContainer.appendChild(rowContainer);
+	} // for row
+
+	
+	let exampleBox = document.getElementById(BoxName.boxNameStr(0, 0));
+
+	this.innerContainer.style.height = (this.gridSize * exampleBox.offsetWidth)+"px";
+	this.innerContainer.style.width = (this.gridSize * exampleBox.offsetWidth)+"px";
+
+
+	let whoStarts="";
+	for (let iind = 0; iind < this.whoStartsInputs.length; iind++)
+	{
+	    if (this.whoStartsInputs[iind].checked)
+	    {
+
+
+		// A tai B
+		whoStarts = this.whoStartsInputs[iind].value;
+		
+		// only one radio can be logically checked, don't check the rest
+		break;
+	    }
+	}
+
+
+	if (whoStarts==="B") {
+	    this.tacHandler();
+	}
+    }
+    
+    
+} // peliluokka
+
+</script>
+
+</head>
+
+    <body >
+    <h1> Ristinolla </h1>
+    <p>    
+    Säädä asetukset, paina nappulaa, pelaa.<br/>
+    Säädä asetukset, paina nappulaa, pelaa.<br/>
+    Säädä asetukset, paina nappulaa, pelaa.<br/>
+    jne.
+    </p>
+
+    <div>
+    ruudukon koko<br>
+    <input type="number" id="gridSize" value="3" min="3" max="8">
+    </div>
+    <br/>
+    <div>
+    Kuka aloittaa?<br>
+    <input type="radio" name="whoStarts" value="A" checked="checked"> minä minä minä<br>
+    <input type="radio" name="whoStarts" value="B"> ylivertainen peliohjelma<br>
+    </div>
+    <br/>
+    <input type="button" onclick="gameObj.newGameHandler()" value="Uusi peli">
+    <br/>
+    <div id="numberContainer"></div>
+    <div id="infoBox"></div>
+
+
+    <script>
+    /* pelin kontruktori lukee pikamuuttujiin getElementsillä yllä olevat divit,
+       siksi ei voi olla esim headin lopussa tai body-tagin sisällä */
+let gameObj = new Game();
+</script>
+
+    <script>
+
+
+
+</script>
+
+</body>
+    </html>

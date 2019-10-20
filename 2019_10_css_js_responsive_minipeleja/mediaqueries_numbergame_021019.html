@@ -1,0 +1,140 @@
+    <!--
+(c) Eli Parviainen
+fullstackdev-rekrykurssi syksy 2019
+
+lukujenarvailupeli
+oppimistavoite: mediaquery-responsiivisuuden soveltaminen
+-->
+    
+<!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <style>
+    body {
+	font-family: arial;
+	padding: 20px;
+    }
+
+
+
+#infoBox {
+    margin-top: 20px;
+    display: block;
+    	border-style: none;
+	border-color: red;
+	border-width: 2px;
+}
+
+    .guessableNumber, .discardedNumber {
+	border-style: solid;
+	border-color: teal;
+	border-width: 2px;
+	border-radius: 10px;
+	margin: auto;
+	text-align: center;
+	box-sizing: border-box;
+    }
+
+    .guessableNumber {
+	color: blue;
+	font-weight: bold;
+    }
+
+    .discardedNumber {
+	color: grey;
+    }
+
+    /* korkeus pitää olla, ei osa päätellä koodissa lisättyjen koosta sitä */
+    #numberContainer { height: 1.5em; }
+    
+    .guessableNumber, .discardedNumber{ float: left; width: 10%; }
+
+    /*
+    näitten järjestyksellä on väliä koska useampi täsmää
+    */
+    @media screen and (max-width: 700px) {
+    .guessableNumber, .discardedNumber { width: 20%; }
+    #numberContainer { height: 3em; }
+    }
+    
+    @media screen and (max-width: 500px) {
+    .guessableNumber, .discardedNumber { width: 33.33%; }
+    #numberContainer { height: 6em; }
+    }
+
+    @media screen and (max-width: 300px) {
+    .guessableNumber, .discardedNumber { width: 50%; }
+        #numberContainer { height: 7.5em; }
+    }
+
+
+</style>
+    </head>
+
+    <body>
+    <h1> Numeropeli </h1>
+    <p>
+    Arvaa oikeaa lukua klikkaamalla ruutua.
+    Uuden pelin saat lataamalla sivun uudelleen.
+    </p>
+
+               <div id="numberContainer"></div>
+    <div id="infoBox"></div>
+        
+    
+    <script>
+
+
+    const numberContainer = document.getElementById("numberContainer");
+const infoBox=document.getElementById("infoBox");
+const MIN_NUMBER = 1;
+const MAX_NUMBER = 10;
+
+// BUGI: ei käytännössä pysty tuottamaan nollaa, se on vain yksi piste
+// parempi tapa jota en ala testata tässä nyt:
+// 	let ind = Math.floor(Math.random()*(freeB.length+1));
+let secretNumber = Math.ceil(Math.random()*(MAX_NUMBER-1))+1;
+
+for (let i=MIN_NUMBER-1; i<MAX_NUMBER; i++) {
+    let elem = document.createElement("div");
+    elem.className = "guessableNumber";
+    elem.id = "number"+(i+1);
+    elem.innerHTML = i+1;
+    elem.onclick = function (event) { handleGuess(i+1); }
+    // toinen tapa luoda innerHTML:
+    //var text = document.createTextNode(i); elem.appendChild(text);
+    numberContainer.appendChild(elem);
+}
+
+
+
+function handleGuess(guess) {
+    infoBox.innerHTML = "Arvasit luvun "+guess+".";
+    
+    if (secretNumber>guess) {
+	infoBox.innerHTML = infoBox.innerHTML + " Arvaus on liian pieni.";
+	hideNumbers(MIN_NUMBER, guess); 
+    } else if (secretNumber<guess) {
+	infoBox.innerHTML = infoBox.innerHTML + " Arvaus on liian iso. ";
+	hideNumbers(guess, MAX_NUMBER); 
+    } else {
+	infoBox.innerHTML = infoBox.innerHTML + " Arvasit oikein! ";
+    }
+
+}
+
+function hideNumbers(hideFrom, hideTo) {
+    for (let i=hideFrom; i<hideTo+1; i++) {
+        let num=document.getElementById("number"+i);
+	num.className = "discardedNumber";
+	num.onclick=undefined;
+    }
+}
+
+
+
+</script>
+
+</body>
+    </html>
