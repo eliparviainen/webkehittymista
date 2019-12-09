@@ -1,0 +1,56 @@
+<div *ngIf="!isPlaying; else playthegame">
+<form (ngSubmit)="isPlaying=!isPlaying; startGame()" #startForm="ngForm">
+
+<div class="form-group">
+<label for="type">Player name:</label>
+<input type="text" name="player"
+[(ngModel)]="player"/>
+</div>
+
+<input type="submit" class="btn btn-primary" value="Start game"/>
+</form>
+
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Player</th>
+      <th>Guesses</th>
+      </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let plr of topten">
+      <td>{{plr.name}}</td>
+      <td>{{plr.noof}}</td>
+      </tr>
+  </tbody>
+  </table>
+
+</div>
+
+<ng-template #playthegame>
+
+  <form (ngSubmit)="submitGuess()" #guessForm="ngForm">
+
+<div class="form-group">
+<label for="type">Guess:</label>
+<input type="number" name="player"
+[(ngModel)]="guess"/>
+</div>
+<div> hint: [{{minval}}, {{maxval}}] </div>
+
+<input type="submit" class="btn btn-primary" value="Submit guess"/>
+  </form>
+  <br/>
+  <div> {{msg}}</div>
+
+    <div *ngIf="msg==='you win'">
+
+
+        <form (ngSubmit)="isPlaying=false;" #restartForm="ngForm">
+<input type="submit" class="btn btn-primary" value="Play again"/>
+  </form>
+
+    </div>
+  
+  </ng-template>
